@@ -1,3 +1,4 @@
+import { multerOptions } from './../common/utils/multer.options';
 import { CurrentUser } from './../common/decorators/user.decorator';
 import { JwtAuthGuard } from './../auth/jwt/jwt.guard';
 import { LoginRequestDto } from './../auth/dto/login.request.dto';
@@ -66,10 +67,16 @@ export class CatsController {
   // }
 
   @ApiOperation({ summary: '업로드' })
-  @UseInterceptors(FileInterceptor('image'))
+  @UseInterceptors(FileInterceptor('image', multerOptions('cats')))
+  @UseGuards(JwtAuthGuard)
   @Post('upload')
-  uploadCatImg(@UploadedFiles() files: Array<Express.Multer.File>) {
+  uploadCatImg(
+    @UploadedFiles() files: Array<Express.Multer.File>,
+    @CurrentUser() cat: Cat,
+  ) {
     console.log(files);
-    return 'uploadImg';
+    return { image: files };
+    //return { image: `http://localhost:8000/media/cats/${files[0].filename}` };
+    //return this.catsService.uploadImg(cat, files);
   }
 }
