@@ -1,12 +1,12 @@
-import { multerOptions } from './../common/utils/multer.options';
-import { CurrentUser } from './../common/decorators/user.decorator';
-import { JwtAuthGuard } from './../auth/jwt/jwt.guard';
-import { LoginRequestDto } from './../auth/dto/login.request.dto';
-import { AuthService } from './../auth/auth.service';
-import { ReadOnlyCatDto } from './dto/cats.dto';
-import { CatRequestDto } from './dto/cats.request.dto';
-import { SuccessInterceptor } from './../common/interceptors/success.interceptor';
-import { CatsService } from './cats.service';
+import { multerOptions } from '../../common/utils/multer.options';
+import { CurrentUser } from '../../common/decorators/user.decorator';
+import { JwtAuthGuard } from '../../auth/jwt/jwt.guard';
+import { LoginRequestDto } from '../../auth/dto/login.request.dto';
+import { AuthService } from '../../auth/auth.service';
+import { ReadOnlyCatDto } from '../dto/cats.dto';
+import { CatRequestDto } from '../dto/cats.request.dto';
+import { SuccessInterceptor } from '../../common/interceptors/success.interceptor';
+import { CatsService } from '../services/cats.service';
 import {
   Controller,
   Get,
@@ -19,8 +19,8 @@ import {
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Request } from 'express';
-import { Cat } from './cats.schema';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { Cat } from '../cats.schema';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 
 @Controller('cats')
 @UseInterceptors(SuccessInterceptor)
@@ -67,7 +67,7 @@ export class CatsController {
   // }
 
   @ApiOperation({ summary: '업로드' })
-  @UseInterceptors(FileInterceptor('image', multerOptions('cats')))
+  @UseInterceptors(FilesInterceptor('image', 10, multerOptions('cats')))
   @UseGuards(JwtAuthGuard)
   @Post('upload')
   uploadCatImg(
@@ -75,8 +75,14 @@ export class CatsController {
     @CurrentUser() cat: Cat,
   ) {
     console.log(files);
-    return { image: files };
+    //return { image: files };
     //return { image: `http://localhost:8000/media/cats/${files[0].filename}` };
-    //return this.catsService.uploadImg(cat, files);
+    return this.catsService.uploadImg(cat, files);
+  }
+
+  @ApiOperation({ summary: '모든 고양이 가져오기' })
+  @Get('all')
+  getAllCat() {
+    return this.catsService.getAllCat();
   }
 }

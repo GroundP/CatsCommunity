@@ -1,9 +1,10 @@
+import { CommentsSchema } from './../comments/comments.schema';
 import { CatRequestDto } from './dto/cats.request.dto';
 import { Cat } from './cats.schema';
 import { Injectable, HttpException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-
+import { Model, Types } from 'mongoose';
+import * as mongoose from 'mongoose';
 @Injectable()
 export class CatsRepository {
   constructor(@InjectModel(Cat.name) private readonly catModel: Model<Cat>) {}
@@ -21,7 +22,7 @@ export class CatsRepository {
     return cat;
   }
 
-  async findCatByIdWithoutPW(id: string): Promise<Cat | null> {
+  async findCatByIdWithoutPW(id: string | Types.ObjectId): Promise<Cat | null> {
     const cat = await this.catModel.findById(id).select('-password');
     return cat;
   }
@@ -32,5 +33,16 @@ export class CatsRepository {
     const newCat = await cat.save(); // 업데이트 된것 저장
     console.log(newCat);
     return newCat.readOnlyData;
+  }
+
+  async findAll() {
+    const CommentModel = mongoose.model('comments', CommentsSchema); //comments는 스키마 이름
+
+    const result = await this.catModel
+      .find()
+      .populate('comments', CommentModel); // comments는 virtual field
+
+    return result;
+    //return await this.catModel.find(); // 인자 없이 find를 쓰면 db의 모든 데이터 가져옴
   }
 }
